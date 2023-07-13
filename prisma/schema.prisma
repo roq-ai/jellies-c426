@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model company {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description String?  @db.VarChar(255)
+  image       String?  @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model driver {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name         String   @db.VarChar(255)
+  photo        String?  @db.VarChar(255)
+  vehicle_info String   @db.VarChar(255)
+  rating       Int?
+  user_id      String?  @db.Uuid
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  updated_at   DateTime @default(now()) @db.Timestamp(6)
+  user         user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  review       review[]
+  ride         ride[]
+}
+
+model emergency {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sos_button Boolean
+  user_id    String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  user       user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model review {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  rating     Int
+  feedback   String?  @db.VarChar(255)
+  user_id    String?  @db.Uuid
+  driver_id  String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  driver     driver?  @relation(fields: [driver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ride {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pickup_location  String   @db.VarChar(255)
+  dropoff_location String   @db.VarChar(255)
+  fare_estimate    Int?
+  user_id          String?  @db.Uuid
+  driver_id        String?  @db.Uuid
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @default(now()) @db.Timestamp(6)
+  driver           driver?  @relation(fields: [driver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user             user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ride_history {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pickup_location  String   @db.VarChar(255)
+  dropoff_location String   @db.VarChar(255)
+  fare             Int?
+  driver_info      String?  @db.VarChar(255)
+  trip_duration    Int?
+  user_id          String?  @db.Uuid
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @default(now()) @db.Timestamp(6)
+  user             user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model split_fare {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  fare       Int
+  user_id    String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  user       user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String         @unique @db.VarChar(255)
+  firstName    String?        @db.VarChar(255)
+  lastName     String?        @db.VarChar(255)
+  roq_user_id  String         @db.VarChar(255)
+  tenant_id    String         @db.VarChar(255)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  company      company[]
+  driver       driver[]
+  emergency    emergency[]
+  review       review[]
+  ride         ride[]
+  ride_history ride_history[]
+  split_fare   split_fare[]
+}
